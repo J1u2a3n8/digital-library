@@ -45,6 +45,12 @@ flowchart TB
     Migrations --> DB
 ```
 
+### Ubicación en el repositorio
+
+- `backend/src/Library.Domain`, `backend/src/Library.Infrastructure`, `backend/src/Library.Api`: código de la API.
+- `backend/tests/`: pruebas unitarias y de integración.
+- `frontend/src/`: la SPA de React.
+
 ### Reglas de dependencia
 
 - `Library.Domain` no conoce EF Core ni ASP.NET. Las entidades protegen sus invariantes (al menos un autor, máximo 20, sin autores repetidos, título 1..300, solo `IsCurrent` puede cambiar en una versión).
@@ -58,8 +64,8 @@ flowchart TB
 | Capa `Application` separada | Tendría solo dos servicios; se mantienen en `Api/Services` y usan `LibraryDbContext` directo |
 | Repositorio genérico / Unit of Work | `DbContext` ya es ambas cosas; envolverlo esconde `Include`, proyecciones y transacciones |
 | MediatR / CQRS | Agrega indirección sin beneficio para 6 endpoints |
-| AutoMapper | Pocos DTOs; mapeo manual y proyecciones LINQ ([ADR-008](decisions/ADR-008-mapeo-manual-sin-automapper.md)) |
-| Minimal APIs | Controllers por legibilidad y Swagger descriptivo ([ADR-007](decisions/ADR-007-controllers-vs-minimal-apis.md)) |
+| AutoMapper | Pocos DTOs; mapeo manual y proyecciones LINQ |
+| Minimal APIs | Controllers por legibilidad y Swagger descriptivo |
 | Interfaces para cada servicio | Una sola implementación; las pruebas de integración usan la API real |
 
 `TimeProvider` se inyecta para no usar `DateTime.Now` y poder controlar el tiempo.

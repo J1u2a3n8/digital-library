@@ -2,7 +2,7 @@
 
 Aplicación web para gestionar **obras literarias**: registrar obras con autores existentes o nuevos, editarlas sin perder la historia, y explorar el catálogo con filtros acumulativos, orden y paginación.
 
-Challenge técnico Fullstack **.NET 10 + React 19 + SQL Server 2022**.
+Aplicación Fullstack **.NET 10 + React 19 + SQL Server 2022**.
 
 ![Listado de obras](docs/screenshots/01-listado.png)
 
@@ -15,6 +15,7 @@ Challenge técnico Fullstack **.NET 10 + React 19 + SQL Server 2022**.
 ## Índice
 
 - [Inicio rápido](#inicio-rápido)
+- [Estructura del repositorio](#estructura-del-repositorio)
 - [Stack](#stack)
 - [Arquitectura](#arquitectura)
 - [Modelo de datos](#modelo-de-datos)
@@ -24,9 +25,7 @@ Challenge técnico Fullstack **.NET 10 + React 19 + SQL Server 2022**.
 - [Variables de entorno](#variables-de-entorno)
 - [Migraciones y seed](#migraciones-y-seed)
 - [Pruebas y cobertura](#pruebas-y-cobertura)
-- [Decisiones y tradeoffs](#decisiones-y-tradeoffs)
 - [Limitaciones](#limitaciones)
-- [Próximos pasos](#próximos-pasos)
 - [Documentación adicional](#documentación-adicional)
 
 ---
@@ -36,8 +35,8 @@ Challenge técnico Fullstack **.NET 10 + React 19 + SQL Server 2022**.
 Requisito: Docker Desktop (o Docker Engine + Compose v2).
 
 ```bash
-git clone https://github.com/J1u2a3n8/coding-band-library-challenge.git
-cd coding-band-library-challenge
+git clone https://github.com/J1u2a3n8/digital-library.git
+cd digital-library
 docker compose up --build
 ```
 
@@ -52,6 +51,33 @@ docker compose up --build
 Al iniciar, la API aplica las migraciones y carga datos de ejemplo (12 autores, 10 obras). Los datos quedan en el volumen `sqlserver-data`; `docker compose down -v` los borra.
 
 La contraseña de SQL Server se toma de `.env` (copiar `.env.example`). Si no existe `.env`, Compose usa el mismo valor de ejemplo **solo para la demo local**, así funciona desde un clon limpio.
+
+---
+
+## Estructura del repositorio
+
+```text
+digital-library/
+├─ backend/                 API .NET 10 (todo lo de C#)
+│  ├─ Library.sln
+│  ├─ src/
+│  │  ├─ Library.Domain/          entidades y reglas
+│  │  ├─ Library.Infrastructure/  EF Core, migraciones, seed
+│  │  └─ Library.Api/             controllers, servicios, validación, Swagger
+│  └─ tests/
+│     ├─ Library.UnitTests/
+│     └─ Library.IntegrationTests/
+├─ frontend/                UI React 19 + TypeScript + Vite
+│  ├─ src/                  páginas, componentes, tema, cliente de la API, pruebas
+│  └─ e2e/                  smoke test con Playwright
+├─ docker/                  Dockerfiles de API y web, configuración de Nginx
+├─ docs/                    arquitectura, base de datos, ejemplos de la API, capturas
+├─ .github/workflows/ci.yml
+├─ compose.yaml             levanta base + API + web
+└─ .env.example
+```
+
+Los comandos de .NET se ejecutan dentro de `backend/` y los de Node dentro de `frontend/`. Docker Compose se ejecuta desde la raíz.
 
 ---
 
@@ -170,7 +196,7 @@ Los autores nuevos se crean **dentro de la misma transacción** que la obra: si 
 - `NormalizedName` tiene índice único. Antes de crear se busca; si existe, se reutiliza.
 - Autores repetidos en el mismo request (por id o por nombre normalizado, o uno por id y otro por nombre) se unifican.
 - Si dos requests crean el mismo autor a la vez, el índice único rechaza el segundo insert (`SqlException` 2601/2627); se captura y se usa el autor existente.
-- **Limitación:** dos personas distintas con el mismo nombre (homónimos) quedarían unificadas. Ver [ADR-004](docs/decisions/ADR-004-deduplicacion-autores.md).
+- **Limitación:** dos personas distintas con el mismo nombre (homónimos) quedarían unificadas.
 
 ### Versionado (integridad histórica)
 - Crear una obra genera la versión 1 (`Created`).
@@ -250,20 +276,26 @@ Error de validación:
 
 ## Desarrollo local sin Docker
 
-Requisitos: .NET SDK 10, Node 24 y un SQL Server accesible (el de Compose sirve: `docker compose up -d sqlserver`).
+Requisitos: .NET SDK 10, Node 24 y Docker (solo para SQL Server). Así la UI lee del backend y el backend de la base, cada uno en su terminal:
 
 ```bash
-# API en http://localhost:8080 (perfil "http"; en Development aplica migraciones y seed)
+# 1) Base de datos: solo el contenedor de SQL Server
+docker compose up -d sqlserver
+
+# 2) API en http://localhost:8080 (perfil "http"; en Development aplica migraciones y seed)
+cd backend
 export ConnectionStrings__DefaultConnection="Server=localhost,1433;Database=LibraryDb;User Id=sa;Password=<tu-password>;Encrypt=True;TrustServerCertificate=True;"
 dotnet run --project src/Library.Api
 
-# Frontend en http://localhost:5173 (Vite redirige /api a localhost:8080)
-cd web
+# 3) Frontend en http://localhost:5173, en otra terminal (Vite redirige /api a localhost:8080)
+cd frontend
 npm ci
 npm run dev
 ```
 
 En PowerShell: `$env:ConnectionStrings__DefaultConnection = "Server=localhost,1433;..."`.
+
+Si ya está corriendo todo con `docker compose up`, primero detené la API y la web de Docker (`docker compose stop api web`) para liberar los puertos 8080 y 3000.
 
 ---
 
@@ -279,14 +311,15 @@ En PowerShell: `$env:ConnectionStrings__DefaultConnection = "Server=localhost,14
 | `Swagger__Enabled` | API | `true` publica Swagger fuera de Development |
 | `Cors__AllowedOrigins__0..n` | API | Orígenes permitidos (por defecto 5173, 3000, 4173) |
 
-`appsettings*.json` no tienen secretos. `.env` está en `.gitignore`. El usuario `sa` es solo para el challenge; en producción se usa un usuario con permisos mínimos y un gestor de secretos.
+`appsettings*.json` no tienen secretos. `.env` está en `.gitignore`. El usuario `sa` es solo para el entorno de demo; en producción se usa un usuario con permisos mínimos y un gestor de secretos.
 
 ---
 
 ## Migraciones y seed
 
 ```bash
-# Crear una migración nueva (herramienta local en dotnet-tools.json)
+# Desde backend/. Crear una migración nueva (herramienta local en dotnet-tools.json)
+cd backend
 dotnet tool restore
 dotnet ef migrations add <Nombre> -p src/Library.Infrastructure -s src/Library.Infrastructure -o Persistence/Migrations
 
@@ -310,11 +343,12 @@ dotnet ef database update -p src/Library.Infrastructure -s src/Library.Infrastru
 
 ```bash
 # Backend: unit + integración, cobertura combinada con umbral de 80 % de líneas (requiere Docker)
+cd backend
 dotnet test -m:1 -p:CollectCoverage=true -p:Threshold=80 -p:ThresholdType=line
-# Reporte en coverage/backend/coverage.cobertura.xml
+# Reporte en backend/coverage/coverage.cobertura.xml
 
 # Frontend: lint, formato, pruebas con umbrales de 80 % (líneas, funciones, ramas, sentencias) y build
-cd web
+cd frontend
 npm run lint && npm run format:check && npm run test:coverage && npm run build
 
 # Smoke test de punta a punta (con docker compose up corriendo)
@@ -335,28 +369,6 @@ La CI (GitHub Actions) corre todo lo anterior en cada push a `main`, más `docke
 
 ---
 
-## Decisiones y tradeoffs
-
-| Decisión | Por qué | Costo aceptado |
-|---|---|---|
-| SQL Server 2022 en Docker ([ADR-001](docs/decisions/ADR-001-sql-server-docker.md)) | Motor del puesto; `rowversion` e índices filtrados; reproducible | Imagen pesada (~1,5 GB) |
-| Versiones inmutables con snapshot ([ADR-002](docs/decisions/ADR-002-versionado-snapshots.md)) | Historia consultable y fácil de probar | Más filas; la cantidad de autores se calcula |
-| EF Core, sin stored procedures ([ADR-003](docs/decisions/ADR-003-ef-core-vs-stored-procedures.md)) | Filtros opcionales componibles, SQL parametrizado, testeable | Menos control fino del plan de ejecución |
-| Nombre normalizado único ([ADR-004](docs/decisions/ADR-004-deduplicacion-autores.md)) | Evita duplicados simple y con garantía de la base | Homónimos se unifican |
-| Sin autenticación ([ADR-005](docs/decisions/ADR-005-sin-autenticacion.md)) | Fuera del alcance; `X-Actor` solo para el historial | Cualquiera puede editar |
-| Diseño editorial propio ([ADR-006](docs/decisions/ADR-006-diseno-ui.md)) | UI de catálogo, no dashboard genérico | Más trabajo de tema |
-| Controllers, no Minimal APIs ([ADR-007](docs/decisions/ADR-007-controllers-vs-minimal-apis.md)) | Legibilidad y Swagger descriptivo | Algo más de código |
-| Mapeo manual, sin AutoMapper ([ADR-008](docs/decisions/ADR-008-mapeo-manual-sin-automapper.md)) | Pocos DTOs; proyecciones LINQ; errores en compilación | Algunas líneas repetidas |
-| Lógica de casos de uso en `Api/Services` | Evita una capa Application vacía | Si crece, conviene separar |
-
-**Decisiones consultadas con el usuario** (no estaban definidas en el enunciado):
-
-1. La UI envía `X-Actor` desde un campo "Tu nombre" del encabezado (guardado en el navegador). Aclarado en la UI: no es un login.
-2. Seed: se reemplazó *Ficciones* por *Antología de la literatura fantástica* (1940) para tener 12 autores, 10 obras y una obra real con 3 autores.
-3. Contraseña de SA: Compose usa `.env` y, si no existe, el valor de ejemplo como fallback de demo local.
-
----
-
 ## Limitaciones
 
 - **Homónimos:** dos autores distintos con el mismo nombre se unifican.
@@ -366,14 +378,6 @@ La CI (GitHub Actions) corre todo lo anterior en cada push a `main`, más `docke
 - **Sin autenticación ni autorización:** `X-Actor` es un dato libre que cualquiera puede enviar.
 - `AuthorCount` se calcula en cada consulta (`COUNT`); con millones de filas convendría denormalizarlo.
 
-## Próximos pasos
-
-- **Autenticación/autorización:** OIDC (Cognito / Entra ID) con JWT; `ChangedBy` desde el claim del usuario; roles lectura / edición / auditoría.
-- **AWS:** API en ECS Fargate o App Runner, SQL Server en RDS, frontend en S3 + CloudFront, secretos en Secrets Manager, logs y métricas en CloudWatch, deploy desde GitHub Actions con OIDC. Migraciones como paso separado del pipeline.
-- **Observabilidad:** logs estructurados con correlation id, OpenTelemetry (trazas y métricas), alertas sobre 5xx y latencia.
-- **Datos:** alias/merge manual de autores, full-text search, rango de fechas, denormalizar `AuthorCount` si escala, borrado lógico.
-- **Seguridad:** rate limiting, headers de seguridad en Nginx, usuario de base con permisos mínimos.
-
 ---
 
 ## Documentación adicional
@@ -381,8 +385,6 @@ La CI (GitHub Actions) corre todo lo anterior en cada push a `main`, más `docke
 - [docs/architecture.md](docs/architecture.md): componentes y flujos de creación, actualización y consulta.
 - [docs/database.md](docs/database.md): tablas, índices, consulta de filtros, versionado y escala.
 - [docs/api-examples.md](docs/api-examples.md): ejemplos `curl` de todos los endpoints.
-- [docs/defense.md](docs/defense.md): guía para la defensa técnica.
-- [docs/decisions/](docs/decisions/): ADRs.
 
 ---
 

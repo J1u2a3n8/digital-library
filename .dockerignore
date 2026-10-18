@@ -1,12 +1,14 @@
 **/bin/
 **/obj/
 **/node_modules/
-web/dist/
-web/coverage/
+frontend/dist/
+frontend/coverage/
 coverage/
 **/TestResults/
 .git/
 .github/
 .env
 docs/
-tests/
+backend/tests/
+frontend/test-results/
+frontend/e2e/

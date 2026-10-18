@@ -12,8 +12,8 @@
     así el umbral se calcula sobre el total de backend y no por proyecto.
   -->
   <PropertyGroup>
-    <CoverletOutput>$(MSBuildThisFileDirectory)../coverage/backend/</CoverletOutput>
-    <MergeWith>$(MSBuildThisFileDirectory)../coverage/backend/coverage.json</MergeWith>
+    <CoverletOutput>$(MSBuildThisFileDirectory)../coverage/</CoverletOutput>
+    <MergeWith>$(MSBuildThisFileDirectory)../coverage/coverage.json</MergeWith>
     <CoverletOutputFormat>json,cobertura</CoverletOutputFormat>
     <Include>[Library.Domain]*,[Library.Infrastructure]*,[Library.Api]*</Include>
     <Exclude>[Library.Infrastructure]Library.Infrastructure.Persistence.Migrations.*</Exclude>
