@@ -1,0 +1,12 @@
+**/bin/
+**/obj/
+**/node_modules/
+web/dist/
+web/coverage/
+coverage/
+**/TestResults/
+.git/
+.github/
+.env
+docs/
+tests/
