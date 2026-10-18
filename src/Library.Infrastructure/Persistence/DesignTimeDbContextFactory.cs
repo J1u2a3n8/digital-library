@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
@@ -6,6 +7,7 @@ namespace Library.Infrastructure.Persistence;
 /// <summary>
 /// Solo la usa la herramienta "dotnet ef" para crear migraciones. No abre conexión.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Solo se usa en tiempo de diseño por dotnet ef.")]
 public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<LibraryDbContext>
 {
     public LibraryDbContext CreateDbContext(string[] args)

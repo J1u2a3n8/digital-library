@@ -1,0 +1,23 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <!--
+    Cobertura con coverlet.msbuild. Se activa con /p:CollectCoverage=true.
+    Los dos proyectos de prueba escriben en la misma carpeta y se combinan (MergeWith),
+    así el umbral se calcula sobre el total de backend y no por proyecto.
+  -->
+  <PropertyGroup>
+    <CoverletOutput>$(MSBuildThisFileDirectory)../coverage/backend/</CoverletOutput>
+    <MergeWith>$(MSBuildThisFileDirectory)../coverage/backend/coverage.json</MergeWith>
+    <CoverletOutputFormat>json,cobertura</CoverletOutputFormat>
+    <Include>[Library.Domain]*,[Library.Infrastructure]*,[Library.Api]*</Include>
+    <Exclude>[Library.Infrastructure]Library.Infrastructure.Persistence.Migrations.*</Exclude>
+    <ExcludeByFile>**/Program.cs;**/Migrations/*.cs</ExcludeByFile>
+    <ExcludeByAttribute>GeneratedCodeAttribute,CompilerGeneratedAttribute,ExcludeFromCodeCoverageAttribute</ExcludeByAttribute>
+  </PropertyGroup>
+</Project>

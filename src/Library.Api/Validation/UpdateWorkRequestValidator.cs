@@ -14,7 +14,9 @@ public class UpdateWorkRequestValidator : AbstractValidator<UpdateWorkRequest>
 
         RuleFor(request => request.RowVersion)
             .NotEmpty()
-            .WithMessage("El rowVersion es obligatorio.")
+            .WithMessage("El rowVersion es obligatorio.");
+
+        RuleFor(request => request.RowVersion)
             .Must(BeValidRowVersion)
             .When(request => !string.IsNullOrEmpty(request.RowVersion))
             .WithMessage("El rowVersion no es un valor Base64 válido.");
