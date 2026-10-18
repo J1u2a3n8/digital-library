@@ -25,6 +25,13 @@ export function WorkFiltersBar({ query, onFiltersChange, onClear }: WorkFiltersB
   const [authorText, setAuthorText] = useState(query.authorName ?? '');
   const [syncedQuery, setSyncedQuery] = useState({ title: query.title, authorName: query.authorName });
   const debounceTimer = useRef<number | undefined>(undefined);
+  // El temporizador se dispara después de otros renders: siempre debe usar la URL y el callback más recientes,
+  // si no, podría pisar un filtro aplicado mientras tanto (por ejemplo, el mínimo de autores).
+  const latest = useRef({ query, onFiltersChange });
+
+  useEffect(() => {
+    latest.current = { query, onFiltersChange };
+  });
 
   // Si la URL cambia desde afuera (chip quitado, limpiar, botón atrás), los campos se actualizan.
   if (syncedQuery.title !== query.title || syncedQuery.authorName !== query.authorName) {
@@ -37,9 +44,10 @@ export function WorkFiltersBar({ query, onFiltersChange, onClear }: WorkFiltersB
 
   const applyTexts = (title: string, authorName: string) => {
     window.clearTimeout(debounceTimer.current);
+    const { query: currentQuery, onFiltersChange: applyChanges } = latest.current;
     const changes = { title: toFilterText(title), authorName: toFilterText(authorName) };
-    if (changes.title !== query.title || changes.authorName !== query.authorName) {
-      onFiltersChange(changes);
+    if (changes.title !== currentQuery.title || changes.authorName !== currentQuery.authorName) {
+      applyChanges(changes);
     }
   };
 
@@ -59,7 +67,7 @@ export function WorkFiltersBar({ query, onFiltersChange, onClear }: WorkFiltersB
       role="search"
       aria-label="Filtros de obras"
       onSubmit={submit}
-      sx={{ p: { xs: 2, md: 3 }, border: 1, borderColor: 'divider', borderRadius: 3 }}
+      sx={{ p: { xs: 2, md: 3 }, border: 1, borderColor: 'divider', borderRadius: 1.5 }}
     >
       <Typography variant="subtitle2" component="h2" sx={{ mb: 2, color: 'text.secondary' }}>
         Filtros

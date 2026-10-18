@@ -123,7 +123,7 @@ export function AuthorPicker({ value, onChange, error }: AuthorPickerProps) {
 
       <Paper
         variant="outlined"
-        sx={{ borderRadius: 3, overflow: 'hidden', borderColor: error ? 'error.main' : 'divider' }}
+        sx={{ borderRadius: 1.5, overflow: 'hidden', borderColor: error ? 'error.main' : 'divider' }}
       >
         {authorsQuery.isPending && (
           <Stack spacing={1} sx={{ p: 2 }} aria-label="Cargando autores">

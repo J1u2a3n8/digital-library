@@ -132,6 +132,18 @@ describe('Listado de obras', () => {
     expect(currentSearch(router).get('minimumAuthorCount')).toBeNull();
   });
 
+  it('no pierde un filtro elegido mientras corre el debounce del texto', async () => {
+    const { user, router } = renderApp('/works');
+    await waitForRows();
+
+    await user.type(screen.getByLabelText('Título'), 'libro');
+    await user.click(screen.getByLabelText('Mínimo de autores'));
+    await user.click(await screen.findByRole('option', { name: '2+' }));
+
+    await waitFor(() => expect(currentSearch(router).get('title')).toBe('libro'));
+    expect(currentSearch(router).get('minimumAuthorCount')).toBe('2');
+  });
+
   it('limpiar filtros vacía los campos y la URL', async () => {
     const { user, router } = renderApp('/works?title=libro&authorName=borges');
     await waitForRows();

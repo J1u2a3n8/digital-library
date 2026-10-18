@@ -85,7 +85,7 @@ export function WorkForm({ initialValues, requireChanges, onSubmit, onCancel }: 
           alignItems: 'start',
         }}
       >
-        <Paper sx={{ p: { xs: 2, md: 3 }, border: 1, borderColor: 'divider', borderRadius: 3 }}>
+        <Paper sx={{ p: { xs: 2, md: 3 }, border: 1, borderColor: 'divider', borderRadius: 1.5 }}>
           <Typography variant="h3" component="h2" sx={{ mb: 2 }}>
             Datos de la obra
           </Typography>
@@ -133,7 +133,7 @@ export function WorkForm({ initialValues, requireChanges, onSubmit, onCancel }: 
           </Stack>
         </Paper>
 
-        <Paper sx={{ p: { xs: 2, md: 3 }, border: 1, borderColor: 'divider', borderRadius: 3 }}>
+        <Paper sx={{ p: { xs: 2, md: 3 }, border: 1, borderColor: 'divider', borderRadius: 1.5 }}>
           <Typography variant="h3" component="h2" sx={{ mb: 0.5 }}>
             Autores
           </Typography>

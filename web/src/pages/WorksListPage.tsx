@@ -202,7 +202,7 @@ export function WorksListPage() {
             p: isMobile ? 0 : { md: 1 },
             border: isMobile ? 0 : 1,
             borderColor: 'divider',
-            borderRadius: 3,
+            borderRadius: 1.5,
             bgcolor: isMobile ? 'transparent' : 'background.paper',
             opacity: worksQuery.isPlaceholderData ? 0.6 : 1,
             transition: 'opacity 120ms',

@@ -140,7 +140,7 @@ export function WorkHistoryDrawer({ workId, workTitle, onClose }: WorkHistoryDra
                     p: 1.5,
                     border: 1,
                     borderColor: 'divider',
-                    borderRadius: 2,
+                    borderRadius: 1,
                     bgcolor: 'background.default',
                   }}
                 >

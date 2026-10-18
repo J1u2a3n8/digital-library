@@ -147,7 +147,7 @@ export const theme = createTheme({
           backgroundColor: 'transparent',
           borderBottom: `1px solid ${colors.divider}`,
         },
-        body: { borderBottom: `1px solid ${colors.divider}` },
+        body: { fontSize: 15, lineHeight: '24px', borderBottom: `1px solid ${colors.divider}` },
       },
     },
     MuiTableRow: {
